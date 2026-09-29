@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if editing else 'Create' }} {{ 'habit' if habit else 'task' }} · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>{{ 'Edit' if editing else 'Create' }} {{ 'habit' if habit else 'task' }}</h1>
+  <p>{{ 'Habits repeat on the weekdays you choose.' if habit else 'A task can have a scheduled date or stay on your to-do list for later.' }} A plan does not count as a completed activity.</p>
+  {% if editing and habit %}<p class="muted">Changes update the schedule. Existing completions remain linked to their original occurrence dates.</p>{% endif %}
+</header>
+{% if errors %}<div class="form-errors" role="alert"><h2>Please check these fields</h2><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="card activity-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="title">Title</label>
+  <input id="title" name="title" value="{{ form.title }}" maxlength="200" required>
+  <label for="category">Category</label>
+  <select id="category" name="category" required>
+    <option value="">Choose a category</option>
+    {% for category in categories %}<option value="{{ category }}" {% if form.category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
+  </select>
+  <label for="notes">Notes <span class="muted">(optional)</span></label>
+  <textarea id="notes" name="notes" rows="3" maxlength="10000">{{ form.notes }}</textarea>
+  {% if habit %}
+  <fieldset>
+    <legend>Repeat on these weekdays</legend>
+    <p class="muted">Select all seven for every day, Monday–Friday for weekdays, or your own weekly pattern.</p>
+    <div class="weekday-options">
+      {% for day in weekdays %}<label class="checkbox-label"><input type="checkbox" name="weekdays" value="{{ loop.index0 }}" {% if loop.index0|string in form.weekdays %}checked{% endif %}> {{ day }}</label>{% endfor %}
+    </div>
+  </fieldset>
+  <label for="start_date">Start date</label>
+  <input id="start_date" name="start_date" type="date" value="{{ form.start_date }}" required>
+  <label for="end_date">End date <span class="muted">(optional)</span></label>
+  <input id="end_date" name="end_date" type="date" value="{{ form.end_date }}">
+  {% else %}
+  <label for="planned_date">Planned date <span class="muted">(optional)</span></label>
+  <input id="planned_date" name="planned_date" type="date" value="{{ form.planned_date }}">
+  {% endif %}
+  <label for="planned_time">Scheduled time <span class="muted">(optional, Dar es Salaam time)</span></label>
+  <input id="planned_time" name="planned_time" type="time" value="{{ form.planned_time }}">
+  <label for="reminder_minutes">Reminder</label>
+  <select id="reminder_minutes" name="reminder_minutes">
+    {% for value, label in reminders %}<option value="{{ value }}" {% if form.reminder_minutes|string == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <p class="muted">Reminders appear while GrowthLog is open and its local server is running. Browser notifications are optional; enable them using the reminder button. There are no notifications after you close the app.</p>
+  <div class="actions"><button class="button" type="submit">{{ 'Save changes' if editing else ('Create habit' if habit else 'Add task') }}</button><a href="{{ url_for('planner.index') }}">Cancel</a></div>
+</form>
+{% endblock %}

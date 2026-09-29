@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Welcome' if first_account else 'Create an account' }} | GrowthLog{% endblock %}
+{% block content %}
+<h1 class="page-heading">{{ 'Welcome to GrowthLog' if first_account else 'Create a local account' }}</h1>
+{% if first_account %}
+<p>Create your account to continue. Any activities you saved before accounts were added will belong to this account.</p>
+{% else %}
+<p>Your activities, plans, habits, and reflections will be separate from other accounts.</p>
+{% endif %}
+<p class="status">This account stays on this computer. Choose a password you can remember; there is no email password reset.</p>
+{% if errors %}
+<div class="errors" role="alert"><h2>Please check your details</h2><ul>
+{% for error in errors %}<li>{{ error }}</li>{% endfor %}
+</ul></div>
+{% endif %}
+<form method="post" action="{{ url_for('auth.setup' if first_account else 'auth.register') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username</label>
+    <input id="username" name="username" value="{{ username }}" maxlength="40"
+           pattern="[A-Za-z0-9_.\-]+" autocomplete="username" required aria-describedby="username-help">
+    <p class="field-help" id="username-help">Letters, numbers, dots, underscores, and hyphens. Usernames are not case sensitive.</p>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" minlength="10" maxlength="256"
+           autocomplete="new-password" required aria-describedby="password-help">
+    <p class="field-help" id="password-help">At least 10 characters. A few memorable words can work well.</p>
+    <label for="password-confirmation">Confirm password</label>
+    <input id="password-confirmation" name="password_confirmation" type="password"
+           minlength="10" maxlength="256" autocomplete="new-password" required>
+    <button type="submit">{{ 'Create my account' if first_account else 'Create account' }}</button>
+</form>
+{% if not first_account %}<p><a href="{{ url_for('auth.login') }}">Already have an account? Sign in</a></p>{% endif %}
+{% endblock %}

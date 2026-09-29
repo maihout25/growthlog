@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Weekly reflections · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+    <p class="eyebrow">Notice your progress</p>
+    <h1>Weekly reflections</h1>
+    <p>Take a moment to notice what worked, what felt difficult, and what you want to try next. Rest is part of a sustainable week.</p>
+    <a class="button" href="{{ url_for('insights.weekly_reflection', week_start=current_week.isoformat()) }}">Reflect on this week</a>
+</header>
+{% if errors %}
+<div class="errors" role="alert"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+{% endif %}
+<form method="get" class="card">
+    <label for="week">Choose a date in another week</label>
+    <input id="week" name="week" type="date" max="{{ today.isoformat() }}" value="{{ selected_date }}" required>
+    <p class="muted">Each reflection covers Monday through Sunday. You can reflect on the current week or an earlier week.</p>
+    <button type="submit">Open that week</button>
+</form>
+<h2>Saved reflections</h2>
+{% for reflection in reflections %}
+<article class="card">
+    <h3><a href="{{ url_for('insights.weekly_reflection', week_start=reflection.week_start) }}">Week of {{ reflection.week_start }}</a></h3>
+    {% if reflection.wins %}<p class="preserve-lines">{{ reflection.wins }}</p>
+    {% elif reflection.challenges %}<p class="preserve-lines">{{ reflection.challenges }}</p>
+    {% else %}<p class="preserve-lines">{{ reflection.next_week }}</p>{% endif %}
+    <a href="{{ url_for('insights.weekly_reflection', week_start=reflection.week_start) }}">View or edit reflection</a>
+</article>
+{% else %}
+<p class="empty-state">Your saved weekly reflections will appear here. You can begin with a small win or something you learned about yourself.</p>
+{% endfor %}
+{% endblock %}

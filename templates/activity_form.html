@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }} | GrowthLog{% endblock %}
+{% block content %}
+<a href="{{ url_for('home') }}">Back to GrowthLog</a>
+<h1 class="page-heading">{{ form_title }}</h1>
+<p>Capture something you have already done and what you took away from it.
+    Reading, coding, fitness, and other personal growth all belong here.</p>
+<p class="status">All fields are required. Dates use Dar es Salaam time.</p>
+
+{% if errors %}
+<div class="errors" role="alert">
+    <h2>Please check your activity</h2>
+    <ul>
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<form method="post" action="{{ form_action }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="activity-date">Activity date</label>
+    <input id="activity-date" name="activity_date" type="date"
+           value="{{ form.activity_date }}" max="{{ today }}" required>
+
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" value="{{ form.title }}" required>
+
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+        <option value="">Choose a category</option>
+        {% for category in categories %}
+        <option value="{{ category }}" {% if form.category == category %}selected{% endif %}>{{ category }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="duration">Duration in minutes</label>
+    <input id="duration" name="duration_minutes" type="number" min="1" max="1440"
+           step="1" value="{{ form.duration_minutes }}" required>
+
+    <label for="what-i-did">What I did</label>
+    <textarea id="what-i-did" name="what_i_did" rows="4" required>{{ form.what_i_did }}</textarea>
+
+    <label for="reflection">What I learned or improved</label>
+    <textarea id="reflection" name="reflection" rows="4" required>{{ form.reflection }}</textarea>
+
+    <button type="submit">{{ submit_label }}</button>
+    <p><a href="{{ url_for('journal') }}">Cancel and return to journal</a></p>
+</form>
+{% endblock %}

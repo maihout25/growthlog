@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Weekly schedule · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+  <p class="eyebrow">A little intention, room for rest</p>
+  <h1>Weekly schedule</h1>
+  <p>{{ start.strftime('%d %B') }} – {{ end.strftime('%d %B %Y') }} · Africa/Dar_es_Salaam</p>
+  <div class="actions">
+    <a href="{{ url_for('planner.schedule', week=previous_week.isoformat()) }}">← Previous week</a>
+    <a href="{{ url_for('planner.schedule') }}">This week</a>
+    <a href="{{ url_for('planner.schedule', week=next_week.isoformat()) }}">Next week →</a>
+  </div>
+  <div class="actions"><a class="button" href="{{ url_for('planner.new_task') }}">Add a task</a><a class="button secondary" href="{{ url_for('planner.index') }}">Manage plans and habits</a></div>
+</header>
+<div class="schedule-grid">
+  {% for day in days %}
+  <section class="card schedule-day{% if day.date == today %} is-today{% endif %}">
+    <h2>{{ day.date.strftime('%A') }} <span class="muted">{{ day.date.strftime('%d %b') }}</span>{% if day.date == today %} <span class="badge">Today</span>{% endif %}</h2>
+    {% for task in day.tasks %}
+    <article class="schedule-item">
+      <p class="muted">Task · {{ task.category }}{% if task.planned_time %} · {{ task.planned_time }}{% endif %}</p>
+      <h3>{{ task.title }}</h3>
+      {% if task.activity_id %}<a href="{{ url_for('activity_saved', activity_id=task.activity_id) }}">Completed — view journal entry</a>
+      {% else %}<div class="actions"><a href="{{ url_for('planner.complete_task', task_id=task.id) }}">Record completion</a><a href="{{ url_for('planner.edit_task', task_id=task.id) }}">Edit</a></div>{% endif %}
+    </article>
+    {% endfor %}
+    {% for occurrence in day.habits %}
+    {% set habit = occurrence.habit %}
+    <article class="schedule-item">
+      <p class="muted">Habit · {{ habit.category }}{% if habit.planned_time %} · {{ habit.planned_time }}{% endif %}</p>
+      <h3>{{ habit.title }}</h3>
+      {% if occurrence.completion %}
+      <a href="{{ url_for('activity_saved', activity_id=occurrence.completion.activity_id) }}">Completed — view journal entry</a>
+      <p class="muted">Activity date: {{ occurrence.completion.activity_date }}</p>
+      {% elif day.date <= today %}
+      <a href="{{ url_for('planner.complete_habit', habit_id=habit.id, occurrence_date=day.date.isoformat()) }}">Record completion</a>
+      {% else %}<span class="badge">Upcoming</span>{% endif %}
+    </article>
+    {% endfor %}
+    {% if not day.tasks and not day.habits %}<p class="muted">Open space. Rest or choose something when you feel ready.</p>{% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ error.code }} | GrowthLog{% endblock %}
+{% block content %}
+<h1 class="page-heading">{{ 'Page not found' if error.code == 404 else 'Please try again' }}</h1>
+<p>{{ 'This entry may have been removed, or it may belong to a different account.' if error.code == 404 else error.description }}</p>
+<p><a href="{{ url_for('home') }}">Back to GrowthLog</a></p>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Your account | GrowthLog{% endblock %}
+{% block content %}
+<h1 class="page-heading">Your account</h1>
+<p>Signed in as <strong>{{ current_user.username }}</strong>.</p>
+{% if changed %}<p class="status" role="status">Your password has been changed.</p>{% endif %}
+<h2>Change password</h2>
+{% if errors %}
+<div class="errors" role="alert"><h3>Please check your details</h3><ul>
+{% for error in errors %}<li>{{ error }}</li>{% endfor %}
+</ul></div>
+{% endif %}
+<form method="post" action="{{ url_for('auth.account') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="current-password">Current password</label>
+    <input id="current-password" name="current_password" type="password" maxlength="256"
+           autocomplete="current-password" required>
+    <label for="password">New password</label>
+    <input id="password" name="password" type="password" minlength="10" maxlength="256"
+           autocomplete="new-password" required aria-describedby="password-help">
+    <p class="field-help" id="password-help">Use at least 10 characters.</p>
+    <label for="password-confirmation">Confirm new password</label>
+    <input id="password-confirmation" name="password_confirmation" type="password"
+           minlength="10" maxlength="256" autocomplete="new-password" required>
+    <button type="submit">Change password</button>
+</form>
+{% endblock %}

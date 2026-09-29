@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Fitness details · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+    <p class="eyebrow">Completed activity · {{ activity.activity_date }}</p>
+    <h1>Fitness details</h1>
+    <p>{{ activity.title }}</p>
+    <p class="muted">Add the measurements that help you reflect on this workout. All fields are optional.</p>
+</header>
+{% if errors %}
+<div class="errors" role="alert">
+    <h2>Check your details</h2>
+    <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+<form method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="exercise_type">Exercise or workout type</label>
+    <input id="exercise_type" name="exercise_type" value="{{ form.exercise_type }}" placeholder="For example, squats or walking">
+    <div class="grid">
+        <div>
+            <label for="sets">Sets</label>
+            <input id="sets" name="sets" type="number" min="1" step="1" value="{{ form.sets }}">
+        </div>
+        <div>
+            <label for="reps">Repetitions per set</label>
+            <input id="reps" name="reps" type="number" min="1" step="1" value="{{ form.reps }}">
+        </div>
+        <div>
+            <label for="weight_kg">Weight (kg)</label>
+            <input id="weight_kg" name="weight_kg" type="number" min="0" step="any" value="{{ form.weight_kg }}">
+        </div>
+        <div>
+            <label for="distance_km">Distance (km)</label>
+            <input id="distance_km" name="distance_km" type="number" min="0" step="any" value="{{ form.distance_km }}">
+        </div>
+    </div>
+    <label for="notes">Workout notes</label>
+    <textarea id="notes" name="notes" rows="4">{{ form.notes }}</textarea>
+    <p class="muted">To remove these optional details, clear every field and save. Your completed activity and reflection will stay in your journal.</p>
+    <div class="actions">
+        <button type="submit">Save fitness details</button>
+        <a class="button secondary" href="{{ url_for('journal') }}">Back to journal</a>
+    </div>
+</form>
+{% endblock %}

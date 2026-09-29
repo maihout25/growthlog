@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Delete weekly reflection · GrowthLog{% endblock %}
+{% block content %}
+<h1>Delete this weekly reflection?</h1>
+<p>Week beginning {{ week_start.strftime('%d %b %Y') }}</p>
+<article class="card">
+    {% if reflection.wins %}<h2>What went well</h2><p class="preserve-lines">{{ reflection.wins }}</p>{% endif %}
+    {% if reflection.challenges %}<h2>Challenges</h2><p class="preserve-lines">{{ reflection.challenges }}</p>{% endif %}
+    {% if reflection.next_week %}<h2>Next week</h2><p class="preserve-lines">{{ reflection.next_week }}</p>{% endif %}
+</article>
+<p>This permanently removes this reflection. Your completed activities and growth days are kept.</p>
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="actions">
+        <button type="submit" class="danger" name="confirm" value="delete">Yes, delete this reflection</button>
+        <a class="button secondary" href="{{ url_for('insights.weekly_reflection', week_start=week_start.isoformat()) }}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Activity saved | GrowthLog{% endblock %}
+{% block content %}
+<a href="{{ url_for('home') }}">Back to GrowthLog</a>
+<h1 class="page-heading">Activity saved</h1>
+<p>You made time for growth and reflection. Small steps count.</p>
+<section aria-labelledby="activity-title">
+    <h2 id="activity-title">{{ activity.title }}</h2>
+    <dl>
+        <dt>Activity date</dt>
+        <dd>{{ activity.activity_date }}</dd>
+        <dt>Category</dt>
+        <dd>{{ activity.category }}</dd>
+        <dt>Duration</dt>
+        <dd>{{ activity.duration_minutes }} minutes</dd>
+        <dt>What I did</dt>
+        <dd class="written-text">{{ activity.what_i_did }}</dd>
+        <dt>What I learned or improved</dt>
+        <dd class="written-text">{{ activity.reflection }}</dd>
+    </dl>
+</section>
+<a class="button" href="{{ url_for('new_activity') }}">Record another activity</a>
+{% if activity.category == 'Fitness' %}
+<p><a href="{{ url_for('insights.fitness', activity_id=activity.id) }}">View or add fitness details</a></p>
+{% endif %}
+<p><a href="{{ url_for('journal') }}">View your journal</a></p>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}GrowthLog | Small steps, steady growth{% endblock %}
+{% block content %}
+<p class="eyebrow">Your personal growth journal</p>
+<h1>GrowthLog</h1>
+<p class="intro">Small steps, steady growth(Atomic Habits).</p>
+
+<section aria-labelledby="week-heading">
+    <h2 id="week-heading">This week's growth</h2>
+    <p class="status">
+        <time datetime="{{ week_start.isoformat() }}">{{ week_start.strftime('%d %b %Y') }}</time>
+        &ndash;
+        <time datetime="{{ week_end.isoformat() }}">{{ week_end.strftime('%d %b %Y') }}</time>
+        <br>Monday to Sunday &middot; Dar es Salaam time
+    </p>
+    <p class="growth-count" id="growth-count">{{ growth_days }} growth {{ 'day' if growth_days == 1 else 'days' }} this week</p>
+    <p id="growth-goal">Goal: {{ weekly_goal }} different days</p>
+    <progress value="{{ progress_value }}" max="{{ weekly_goal }}"
+              aria-labelledby="growth-count growth-goal">{{ progress_value }} of {{ weekly_goal }}</progress>
+
+    <ol class="week-days" aria-label="Growth by day">
+        {% for day in days %}
+        <li class="week-day{% if day.qualifies %} has-growth{% endif %}">
+            <time datetime="{{ day.date.isoformat() }}"{% if day.is_today %} aria-current="date"{% endif %}>
+                <strong>{{ day.date.strftime('%a') }}</strong>
+                {{ day.date.strftime('%d %b') }}
+            </time>
+            {% if day.is_today %}<span class="today-label">Today</span>{% endif %}
+            <span>{{ 'Growth recorded' if day.qualifies else ('Upcoming' if day.is_future else 'No entry') }}</span>
+        </li>
+        {% endfor %}
+    </ol>
+
+    {% if growth_days >= weekly_goal %}
+    <p>You reached your five-day goal. Make room to rest and recharge.</p>
+    {% elif growth_days == 0 %}
+    <p>A small step is a good place to start. Record an activity when you are ready.</p>
+    {% else %}
+    <p>Each day of intentional growth counts. Keep making time for what matters to you.</p>
+    {% endif %}
+    <p>A day counts once when it has a completed activity with a reflection.
+        Reading, coding, fitness, and other personal growth all count.</p>
+    <p>Rest days belong here, too. Aim for consistency, with room to recharge.</p>
+</section>
+
+<a class="button" href="{{ url_for('new_activity') }}">Record a completed activity</a>
+<p><a href="{{ url_for('journal') }}">View your journal</a></p>
+
+{% if current_user %}
+<div class="feature-grid">
+    <section>
+        <h2>Make a little room</h2>
+        <p>Plan a task or choose days for a recurring habit. Plans become growth when you complete them and reflect.</p>
+        <a href="{{ url_for('planner.index') }}">Open plans and habits</a>
+    </section>
+    <section>
+        <h2>Look ahead</h2>
+        <p>See your week and choose times that work for you. Reminders can help while GrowthLog is open.</p>
+        <a href="{{ url_for('planner.schedule') }}">View your schedule</a>
+    </section>
+    <section>
+        <h2>Notice what is changing</h2>
+        <p>Look back on your wins, the challenges, and what you want to try next.</p>
+        <a href="{{ url_for('insights.reflections') }}">Write a weekly reflection</a>
+    </section>
+</div>
+{% endif %}
+{% endblock %}

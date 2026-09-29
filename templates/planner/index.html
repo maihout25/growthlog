@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Plans and habits · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+  <p class="eyebrow">Make room for growth</p>
+  <h1>Plans and habits</h1>
+  <p>A plan is an intention. It counts toward your growth days only after you record what you did and learned.</p>
+  <div class="actions">
+    <a class="button" href="{{ url_for('planner.new_task') }}">Add a task</a>
+    <a class="button secondary" href="{{ url_for('planner.new_habit') }}">Create a habit</a>
+    <a class="button secondary" href="{{ url_for('planner.schedule') }}">Weekly schedule</a>
+  </div>
+</header>
+
+<section aria-labelledby="tasks-heading">
+  <h2 id="tasks-heading">Your to-do list</h2>
+  {% for task in tasks %}
+  <article class="card">
+    <div class="actions">
+      <span class="badge">{{ task.category }}</span>
+      <span class="badge">{{ 'Completed' if task.activity_id else ('Cancelled' if task.cancelled else 'Planned') }}</span>
+    </div>
+    <h3>{{ task.title }}</h3>
+    <p>{{ task.planned_date or 'Unscheduled' }}{% if task.planned_time %} · {{ task.planned_time }}{% endif %}</p>
+    {% if task.notes %}<p class="entry-text">{{ task.notes }}</p>{% endif %}
+    <div class="actions">
+      {% if task.activity_id %}
+        <a href="{{ url_for('activity_saved', activity_id=task.activity_id) }}">View completed activity</a>
+      {% elif not task.cancelled %}
+        <a class="button" href="{{ url_for('planner.complete_task', task_id=task.id) }}">Record completion</a>
+      {% endif %}
+      <a href="{{ url_for('planner.edit_task', task_id=task.id) }}">Edit plan</a>
+      <a href="{{ url_for('planner.delete_task', task_id=task.id) }}">Delete plan</a>
+    </div>
+  </article>
+  {% else %}
+  <p class="empty-state">No tasks yet. Add one small thing you want to do, with a date or whenever you have time.</p>
+  {% endfor %}
+  <p class="muted">Deleting a completed journal entry returns its linked task to your to-do list. Deleting a plan keeps its completed journal entry.</p>
+</section>
+
+<section aria-labelledby="habits-heading">
+  <h2 id="habits-heading">Recurring habits</h2>
+  {% for habit in habits %}
+  <article class="card">
+    <div class="actions"><span class="badge">{{ habit.category }}</span>{% if not habit.active %}<span class="badge">Archived</span>{% endif %}</div>
+    <h3>{{ habit.title }}</h3>
+    <p>{% for day in habit.weekdays.split(',') %}{{ weekdays[day|int] }}{% if not loop.last %}, {% endif %}{% endfor %}{% if habit.planned_time %} · {{ habit.planned_time }}{% endif %}</p>
+    <p class="muted">From {{ habit.start_date }}{% if habit.end_date %} through {{ habit.end_date }}{% endif %}</p>
+    {% if habit.notes %}<p class="entry-text">{{ habit.notes }}</p>{% endif %}
+    <div class="actions">
+      <a href="{{ url_for('planner.schedule') }}">View occurrences</a>
+      <a href="{{ url_for('planner.edit_habit', habit_id=habit.id) }}">Edit habit</a>
+      <form method="post" action="{{ url_for('planner.archive_habit', habit_id=habit.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button secondary" type="submit">{{ 'Archive habit' if habit.active else 'Restore habit' }}</button>
+      </form>
+    </div>
+  </article>
+  {% else %}
+  <p class="empty-state">Choose a repeatable activity and the weekdays that suit your life. Rest days are welcome.</p>
+  {% endfor %}
+  <p class="muted">Archiving stops upcoming occurrences and reminders. Existing journal entries stay saved.</p>
+</section>
+{% endblock %}

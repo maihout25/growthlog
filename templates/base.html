@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% if current_user %}<meta name="user-id" content="{{ current_user.id }}">{% endif %}
+    <title>{% block title %}GrowthLog{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% if current_user %}
+    <script src="{{ url_for('static', filename='reminders.js') }}" defer></script>
+    {% endif %}
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('home') }}">GrowthLog<span>Small steps, steady growth.</span></a>
+        {% if current_user %}
+        <nav aria-label="Main navigation">
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('journal') }}">Journal</a>
+            <a href="{{ url_for('planner.index') }}">Plans &amp; habits</a>
+            <a href="{{ url_for('planner.schedule') }}">Schedule</a>
+            <a href="{{ url_for('insights.reflections') }}">Reflections</a>
+            <a href="{{ url_for('auth.account') }}">{{ current_user.username }}</a>
+            <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="text-button" type="submit">Log out</button>
+            </form>
+        </nav>
+        {% endif %}
+    </header>
+    <main id="main-content">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="notice {{ category }}" role="status">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">Built for consistency, with room to rest. Dates and times use Dar es Salaam.</footer>
+</body>
+</html>

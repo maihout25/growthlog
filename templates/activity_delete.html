@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Delete activity | GrowthLog{% endblock %}
+{% block content %}
+<a href="{{ url_for('journal') }}">Back to journal</a>
+<h1 class="page-heading">Delete this activity?</h1>
+<p>This will permanently remove the activity and its reflection. You cannot undo it.</p>
+<section aria-labelledby="activity-title">
+    <h2 id="activity-title">{{ activity.title }}</h2>
+    <dl>
+        <dt>Activity date</dt>
+        <dd>{{ activity.activity_date }}</dd>
+        <dt>Category</dt>
+        <dd>{{ activity.category }}</dd>
+        <dt>Duration</dt>
+        <dd>{{ activity.duration_minutes }} minutes</dd>
+        <dt>What I did</dt>
+        <dd class="written-text">{{ activity.what_i_did }}</dd>
+        <dt>What I learned or improved</dt>
+        <dd class="written-text">{{ activity.reflection }}</dd>
+    </dl>
+</section>
+<form method="post" action="{{ url_for('confirm_delete_activity', activity_id=activity.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirmation_token" value="{{ confirmation_token }}">
+    <button class="danger-button" type="submit">Yes, delete this activity</button>
+    <p><a href="{{ url_for('journal') }}">Cancel and keep activity</a></p>
+</form>
+{% endblock %}

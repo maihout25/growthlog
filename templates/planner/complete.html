@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Record completion · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>Record completion</h1>
+  <p>Turn “{{ record.title }}” into a completed journal entry by describing what you did and learned.</p>
+  {% if occurrence %}<p class="muted">Habit occurrence: {{ occurrence.strftime('%A, %d %B %Y') }}. Use the actual activity date below; that date determines your growth day.</p>{% endif %}
+</header>
+{% if errors %}<div class="form-errors" role="alert"><h2>Please check these fields</h2><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="card activity-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="activity_date">Activity date</label>
+  <input id="activity_date" name="activity_date" type="date" value="{{ form.activity_date }}" max="{{ today }}" required>
+  <label for="title">Title</label>
+  <input id="title" name="title" value="{{ form.title }}" required maxlength="200">
+  <label for="category">Category</label>
+  <select id="category" name="category" required>{% for category in categories %}<option value="{{ category }}" {% if form.category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select>
+  <label for="duration_minutes">Duration in minutes</label>
+  <input id="duration_minutes" name="duration_minutes" type="number" min="1" max="1440" value="{{ form.duration_minutes }}" required>
+  <label for="what_i_did">What I did</label>
+  <textarea id="what_i_did" name="what_i_did" rows="4" required>{{ form.what_i_did }}</textarea>
+  <label for="reflection">What I learned or improved</label>
+  <textarea id="reflection" name="reflection" rows="4" required>{{ form.reflection }}</textarea>
+  <p class="muted">For fitness, a reflection about practice, technique, stamina, or recovery counts as growth. After saving, use the fitness details link to add optional workout measurements.</p>
+  <div class="actions"><button class="button" type="submit">Save completed activity</button><a href="{{ url_for('planner.schedule') if occurrence else url_for('planner.index') }}">Cancel</a></div>
+</form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Your journal | GrowthLog{% endblock %}
+{% block content %}
+<a href="{{ url_for('home') }}">Back to GrowthLog</a>
+<h1 class="page-heading">Your journal</h1>
+<p>Your completed activities and reflections, newest activity dates first.
+    Every small step is worth remembering.</p>
+<a class="button" href="{{ url_for('new_activity') }}">Record a completed activity</a>
+
+{% for activity in activities %}
+<section aria-labelledby="activity-{{ activity.id }}">
+    <h2 id="activity-{{ activity.id }}">{{ activity.title }}</h2>
+    <dl>
+        <dt>Activity date</dt>
+        <dd><time datetime="{{ activity.activity_date }}">{{ activity.activity_date }}</time></dd>
+        <dt>Category</dt>
+        <dd>{{ activity.category }}</dd>
+        <dt>Duration</dt>
+        <dd>{{ activity.duration_minutes }} minutes</dd>
+        <dt>What I did</dt>
+        <dd class="written-text">{{ activity.what_i_did }}</dd>
+        <dt>What I learned or improved</dt>
+        <dd class="written-text">{{ activity.reflection }}</dd>
+    </dl>
+    <a href="{{ url_for('edit_activity', activity_id=activity.id) }}"
+       aria-label="Edit activity: {{ activity.title }}">Edit activity</a>
+    {% if activity.category == 'Fitness' %}
+    <p><a href="{{ url_for('insights.fitness', activity_id=activity.id) }}">View or add fitness details</a></p>
+    {% endif %}
+    <p><a class="danger-link" href="{{ url_for('confirm_delete_activity', activity_id=activity.id) }}"
+          aria-label="Delete activity: {{ activity.title }}">Delete activity</a></p>
+</section>
+{% else %}
+<section aria-labelledby="empty-heading">
+    <h2 id="empty-heading">Your journal starts here</h2>
+    <p>No activities recorded yet. When you are ready, record something you
+        have done and what you learned or improved.</p>
+</section>
+{% endfor %}
+{% endblock %}

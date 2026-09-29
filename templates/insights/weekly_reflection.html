@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Reflect on your week · GrowthLog{% endblock %}
+{% block content %}
+<header class="page-header">
+    <p class="eyebrow">{{ week_start.strftime('%d %b %Y') }} – {{ week_end.strftime('%d %b %Y') }}</p>
+    <h1>Reflect on your week</h1>
+    <p>Keep what helps you grow. Leave room for rest and a fresh start.</p>
+</header>
+<section class="card" aria-label="Saved progress for this week">
+    <h2>{{ summary.growth_days }} of 5 growth days</h2>
+    <p>{{ summary.activity_count }} completed {{ 'activity' if summary.activity_count == 1 else 'activities' }} · {{ summary.minutes }} minutes</p>
+    <p class="muted">This summary is calculated from your saved activities. Writing a weekly reflection does not add a growth day.</p>
+</section>
+{% if errors %}
+<div class="errors" role="alert"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+{% endif %}
+<form method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p>Fill in any of the prompts below. One thoughtful sentence is enough to get started.</p>
+    <label for="wins">What went well?</label>
+    <textarea id="wins" name="wins" rows="4" placeholder="A small win, something learned, or a habit that helped">{{ form.wins }}</textarea>
+    <label for="challenges">What was challenging?</label>
+    <textarea id="challenges" name="challenges" rows="4" placeholder="What got in the way, and what might help?">{{ form.challenges }}</textarea>
+    <label for="next_week">What would you like to try next week?</label>
+    <textarea id="next_week" name="next_week" rows="4" placeholder="Choose one manageable intention">{{ form.next_week }}</textarea>
+    <div class="actions">
+        <button type="submit">Save weekly reflection</button>
+        <a class="button secondary" href="{{ url_for('insights.reflections') }}">Back to reflections</a>
+        {% if saved %}<a class="button secondary" href="{{ url_for('insights.delete_reflection', week_start=week_start.isoformat()) }}">Delete reflection</a>{% endif %}
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Delete plan · GrowthLog{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Delete this plan?</h1>
+  <h2>{{ task.title }}</h2>
+  <p>{{ task.category }} · {{ task.planned_date or 'Unscheduled' }}</p>
+  <p>This removes the plan and its reminders. {% if task.activity_id %}Its completed journal entry stays saved.{% else %}It has no completed activity to remove.{% endif %}</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="delete">
+    <div class="actions"><button class="danger-button" type="submit">Delete plan</button><a href="{{ url_for('planner.index') }}">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}
