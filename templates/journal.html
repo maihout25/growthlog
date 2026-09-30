@@ -2,33 +2,46 @@
 {% block title %}Your journal | GrowthLog{% endblock %}
 {% block content %}
 <a href="{{ url_for('home') }}">Back to GrowthLog</a>
-<h1 class="page-heading">Your journal</h1>
-<p>Your completed activities and reflections, newest activity dates first.
-    Every small step is worth remembering.</p>
-<a class="button" href="{{ url_for('new_activity') }}">Record a completed activity</a>
+<div class="page-header">
+    <h1 class="page-heading">Your journal</h1>
+    <p class="intro">Your completed activities and reflections, newest activity dates first.
+        Every small step is worth remembering.</p>
+    <a class="button" href="{{ url_for('new_activity') }}">Record a completed activity</a>
+</div>
 
+<div class="journal-grid">
 {% for activity in activities %}
 <section aria-labelledby="activity-{{ activity.id }}">
-    <h2 id="activity-{{ activity.id }}">{{ activity.title }}</h2>
-    <dl>
-        <dt>Activity date</dt>
-        <dd><time datetime="{{ activity.activity_date }}">{{ activity.activity_date }}</time></dd>
-        <dt>Category</dt>
-        <dd>{{ activity.category }}</dd>
-        <dt>Duration</dt>
-        <dd>{{ activity.duration_minutes }} minutes</dd>
-        <dt>What I did</dt>
-        <dd class="written-text">{{ activity.what_i_did }}</dd>
-        <dt>What I learned or improved</dt>
-        <dd class="written-text">{{ activity.reflection }}</dd>
+    <div class="entry-heading">
+        <div>
+            <p class="eyebrow"><time datetime="{{ activity.activity_date }}">{{ activity.activity_date }}</time></p>
+            <h2 id="activity-{{ activity.id }}">{{ activity.title }}</h2>
+        </div>
+        <span class="badge">{{ activity.category }}</span>
+    </div>
+    <dl class="entry-details">
+        <div>
+            <dt>Duration</dt>
+            <dd>{{ activity.duration_minutes }} minutes</dd>
+        </div>
+        <div>
+            <dt>What I did</dt>
+            <dd class="written-text">{{ activity.what_i_did }}</dd>
+        </div>
+        <div class="reflection-block">
+            <dt>What I learned or improved</dt>
+            <dd class="written-text">{{ activity.reflection }}</dd>
+        </div>
     </dl>
-    <a href="{{ url_for('edit_activity', activity_id=activity.id) }}"
-       aria-label="Edit activity: {{ activity.title }}">Edit activity</a>
-    {% if activity.category == 'Fitness' %}
-    <p><a href="{{ url_for('insights.fitness', activity_id=activity.id) }}">View or add fitness details</a></p>
-    {% endif %}
-    <p><a class="danger-link" href="{{ url_for('confirm_delete_activity', activity_id=activity.id) }}"
-          aria-label="Delete activity: {{ activity.title }}">Delete activity</a></p>
+    <div class="actions entry-actions">
+        <a href="{{ url_for('edit_activity', activity_id=activity.id) }}"
+           aria-label="Edit activity: {{ activity.title }}">Edit activity</a>
+        {% if activity.category == 'Fitness' %}
+        <a href="{{ url_for('insights.fitness', activity_id=activity.id) }}">View or add fitness details</a>
+        {% endif %}
+        <a class="danger-link" href="{{ url_for('confirm_delete_activity', activity_id=activity.id) }}"
+           aria-label="Delete activity: {{ activity.title }}">Delete activity</a>
+    </div>
 </section>
 {% else %}
 <section aria-labelledby="empty-heading">
@@ -37,4 +50,5 @@
         have done and what you learned or improved.</p>
 </section>
 {% endfor %}
+</div>
 {% endblock %}
