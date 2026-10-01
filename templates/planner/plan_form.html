@@ -40,7 +40,7 @@
   <select id="reminder_minutes" name="reminder_minutes">
     {% for value, label in reminders %}<option value="{{ value }}" {% if form.reminder_minutes|string == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
-  <p class="muted">Reminders appear while GrowthLog is open and its local server is running. Browser notifications are optional; enable them using the reminder button. There are no notifications after you close the app.</p>
+  <p class="muted">Reminders appear while GrowthLog is open. Browser notifications are optional; enable them using the reminder button. There are no notifications after you close the app.</p>
   <div class="actions"><button class="button" type="submit">{{ 'Save changes' if editing else ('Create habit' if habit else 'Add task') }}</button><a href="{{ url_for('planner.index') }}">Cancel</a></div>
 </form>
 {% endblock %}

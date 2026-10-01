@@ -1,4 +1,4 @@
-"""Local accounts, signed sessions, and protection for submitted forms."""
+"""Accounts, signed sessions, and protection for submitted forms."""
 
 import re
 import secrets
@@ -13,6 +13,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import connect_database
+from login_throttle import LoginThrottle
 
 
 auth = Blueprint("auth", __name__)
@@ -51,11 +52,16 @@ def login_required(view):
 def init_app(app):
     app.config.setdefault("CSRF_ENABLED", True)
     app.config.setdefault("LOGIN_DISABLED", False)
+    app.config.setdefault("ALLOW_REGISTRATION", True)
     app.register_blueprint(auth)
+    login_throttle = LoginThrottle()
 
     @app.before_request
     def load_account_and_protect_forms():
         g.user = None
+        # Let Flask report invalid hosts and missing routes before login redirects.
+        if request.routing_exception is not None:
+            return
         # The original learning checks use a temporary database without accounts.
         if not login_is_disabled() and request.endpoint != "static":
             with closing(connect_database(app.config["DATABASE"])) as connection:
@@ -69,7 +75,7 @@ def init_app(app):
                         session.clear()
 
             if request.endpoint not in PUBLIC_ENDPOINTS and g.user is None:
-                destination = "auth.login" if g.has_users else "auth.setup"
+                destination = "auth.setup" if not g.has_users and app.config["ALLOW_REGISTRATION"] else "auth.login"
                 return redirect(url_for(destination), code=303)
 
         if request.method not in {"GET", "HEAD", "OPTIONS"} and app.config["CSRF_ENABLED"]:
@@ -79,6 +85,10 @@ def init_app(app):
                 expected.encode(), submitted.encode()
             ):
                 abort(400, description="This form expired. Refresh the page and submit it again.")
+
+        if app.config.get("PRODUCTION") and request.endpoint == "auth.login" and request.method == "POST":
+            if not login_throttle.allow(request.form.get("username", "")):
+                abort(429, description="Too many sign-in attempts. Please wait 15 minutes and try again.")
 
     @app.context_processor
     def account_template_values():
@@ -90,6 +100,13 @@ def init_app(app):
             response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Referrer-Policy"] = "same-origin"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; object-src 'none'; base-uri 'self'; "
+            "form-action 'self'; frame-ancestors 'self'"
+        )
+        if app.config.get("PRODUCTION"):
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
         return response
 
 
@@ -119,6 +136,8 @@ def start_session(user_id):
 
 
 def register_account(first_account):
+    if not current_app.config["ALLOW_REGISTRATION"]:
+        abort(403, description="Account registration is closed. Contact the owner for an account.")
     username = ""
     errors = []
     if first_account and g.has_users:
@@ -180,7 +199,7 @@ def register():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
-    if not g.has_users:
+    if not g.has_users and current_app.config["ALLOW_REGISTRATION"]:
         return redirect(url_for("auth.setup"), code=303)
     if g.user is not None:
         return redirect(url_for("home"), code=303)

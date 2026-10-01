@@ -2,7 +2,7 @@
 {% block title %}Sign in | GrowthLog{% endblock %}
 {% block content %}
 <h1 class="page-heading">Welcome back</h1>
-<p>Sign in to your local GrowthLog account.</p>
+<p>Sign in to your GrowthLog account.</p>
 {% if errors %}
 <div class="errors" role="alert"><ul>
 {% for error in errors %}<li>{{ error }}</li>{% endfor %}
@@ -16,6 +16,8 @@
     <input id="password" name="password" type="password" maxlength="256" autocomplete="current-password" required>
     <button type="submit">Sign in</button>
 </form>
-<p><a href="{{ url_for('auth.register') }}">Create another local account</a></p>
-<p class="status">Accounts are stored on this computer. There is no email password reset.</p>
+{% if config.ALLOW_REGISTRATION %}
+<p><a href="{{ url_for('auth.register') }}">Create another account</a></p>
+{% endif %}
+<p class="status">Choose a password you can remember; there is no email password reset.</p>
 {% endblock %}

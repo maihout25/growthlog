@@ -1,12 +1,13 @@
 import secrets
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from flask import Flask, abort, redirect, render_template, request, session, url_for
+from werkzeug.exceptions import SecurityError
 
+from administration import init_commands
 from auth import get_user_id
-from configuration import load_secret_key
+from configuration import configure_hosting
 from database import (
     delete_activity, get_activity, get_growth_dates, list_activities,
     save_activity, update_activity,
@@ -14,13 +15,11 @@ from database import (
 
 
 app = Flask(__name__)
-app.secret_key = load_secret_key(app.instance_path)
-app.config["DATABASE"] = Path(app.instance_path) / "growthlog.sqlite3"
 app.config.update(
     CSRF_ENABLED=True, LOGIN_DISABLED=False,
-    SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
     MAX_CONTENT_LENGTH=1024 * 1024,
 )
+configure_hosting(app)
 
 LOCAL_TIMEZONE = ZoneInfo("Africa/Dar_es_Salaam")
 CATEGORIES = ("Reading", "Coding", "Fitness", "Other")
@@ -201,7 +200,11 @@ def confirm_delete_activity(activity_id):
 @app.errorhandler(403)
 @app.errorhandler(404)
 @app.errorhandler(413)
+@app.errorhandler(429)
 def request_error(error):
+    if isinstance(error, SecurityError):
+        # An untrusted hostname has no URL adapter for the page's navigation links.
+        return error.get_response()
     return render_template("error.html", error=error), error.code
 
 
@@ -213,3 +216,5 @@ import planner
 auth.init_app(app)
 insights.init_app(app)
 planner.init_app(app)
+
+init_commands(app)

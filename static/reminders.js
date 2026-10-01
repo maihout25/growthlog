@@ -1,4 +1,4 @@
-// Reminders run only while a GrowthLog page and the local server are open.
+// Reminders run only while a GrowthLog page is open and the server is available.
 // Browser notification permission is requested only after an explicit click.
 (() => {
   const main = document.querySelector("main");
@@ -111,7 +111,7 @@
         }
       }
     } catch {
-      note.textContent = "Reminders will resume when the local server is available.";
+      note.textContent = "Reminders will resume when GrowthLog is available.";
     }
   }
 
