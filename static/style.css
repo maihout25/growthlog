@@ -18,14 +18,24 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background:
-        radial-gradient(ellipse at 8% 0%, rgba(165, 199, 159, 0.30), transparent 48%),
-        radial-gradient(ellipse at 96% 18%, rgba(200, 218, 182, 0.32), transparent 42%),
-        #f5f7f2;
+    background: #f5f7f2;
+    isolation: isolate;
     color: var(--ink);
     font-family: "Segoe UI", Arial, sans-serif;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+}
+
+/* A separate layer softens the photo without fading the text or cards. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(rgba(245, 247, 242, 0.80), rgba(245, 247, 242, 0.88)),
+        url("images/growth-leaves.webp") center / cover no-repeat;
 }
 
 main {
@@ -858,6 +868,10 @@ form > .actions, .page-header > .actions {
 }
 
 @media (prefers-reduced-transparency: reduce) {
+    body::before {
+        display: none;
+    }
+
     :root {
         --surface: #fff;
         --surface-soft: #f9fbf7;
@@ -871,6 +885,10 @@ form > .actions, .page-header > .actions {
 }
 
 @media print {
+    body::before {
+        display: none;
+    }
+
     body {
         background: #fff;
     }
