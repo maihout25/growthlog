@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {% if current_user %}<meta name="user-id" content="{{ current_user.id }}">{% endif %}
     <title>{% block title %}GrowthLog{% endblock %}</title>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% if current_user %}
     <script src="{{ url_for('static', filename='reminders.js') }}" defer></script>
@@ -23,28 +24,36 @@
             </span>
             <span>GrowthLog<small>Small steps, steady growth.</small></span>
         </a>
-        {% if current_user %}
-        {% set active_endpoint = request.endpoint or '' %}
-        <nav aria-label="Main navigation">
-            <a href="{{ url_for('home') }}"{% if active_endpoint == 'home' %} aria-current="page"{% endif %}>Dashboard</a>
-            <a href="{{ url_for('journal') }}"{% if active_endpoint in ['journal', 'new_activity', 'edit_activity', 'activity_saved', 'confirm_delete_activity', 'insights.fitness'] %} aria-current="page"{% endif %}>Journal</a>
-            <a href="{{ url_for('planner.index') }}"{% if active_endpoint.startswith('planner.') and active_endpoint != 'planner.schedule' %} aria-current="page"{% endif %}>Plans &amp; habits</a>
-            <a href="{{ url_for('planner.schedule') }}"{% if active_endpoint == 'planner.schedule' %} aria-current="page"{% endif %}>Schedule</a>
-            <a href="{{ url_for('insights.reflections') }}"{% if active_endpoint.startswith('insights.') and active_endpoint != 'insights.fitness' %} aria-current="page"{% endif %}>Reflections</a>
-            <a class="account-link" href="{{ url_for('auth.account') }}"{% if active_endpoint == 'auth.account' %} aria-current="page"{% endif %}>{{ current_user.username }}</a>
-            <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="text-button" type="submit">Log out</button>
-            </form>
-        </nav>
-        {% else %}
-        <nav aria-label="Account navigation">
-            <a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Sign in</a>
-            {% if registration_available %}
-            <a href="{{ url_for('auth.register') }}"{% if request.endpoint in ['auth.register', 'auth.setup'] %} aria-current="page"{% endif %}>Sign up</a>
+        <div class="header-controls">
+            {% if current_user %}
+            {% set active_endpoint = request.endpoint or '' %}
+            <nav aria-label="Main navigation">
+                <a href="{{ url_for('home') }}"{% if active_endpoint == 'home' %} aria-current="page"{% endif %}>Dashboard</a>
+                <a href="{{ url_for('journal') }}"{% if active_endpoint in ['journal', 'new_activity', 'edit_activity', 'activity_saved', 'confirm_delete_activity', 'insights.fitness'] %} aria-current="page"{% endif %}>Journal</a>
+                <a href="{{ url_for('planner.index') }}"{% if active_endpoint.startswith('planner.') and active_endpoint != 'planner.schedule' %} aria-current="page"{% endif %}>Plans &amp; habits</a>
+                <a href="{{ url_for('planner.schedule') }}"{% if active_endpoint == 'planner.schedule' %} aria-current="page"{% endif %}>Schedule</a>
+                <a href="{{ url_for('insights.reflections') }}"{% if active_endpoint.startswith('insights.') and active_endpoint != 'insights.fitness' %} aria-current="page"{% endif %}>Reflections</a>
+                <a class="account-link" href="{{ url_for('auth.account') }}"{% if active_endpoint == 'auth.account' %} aria-current="page"{% endif %}>{{ current_user.username }}</a>
+                <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="text-button" type="submit">Log out</button>
+                </form>
+            </nav>
+            {% else %}
+            <nav aria-label="Account navigation">
+                <a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Sign in</a>
+                {% if registration_available %}
+                <a href="{{ url_for('auth.register') }}"{% if request.endpoint in ['auth.register', 'auth.setup'] %} aria-current="page"{% endif %}>Sign up</a>
+                {% endif %}
+            </nav>
             {% endif %}
-        </nav>
-        {% endif %}
+            <button id="theme-toggle" class="theme-toggle secondary" type="button" aria-pressed="false" hidden>
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 14a8 8 0 0 1-10-10 8.5 8.5 0 1 0 10 10Z" />
+                </svg>
+                Dark mode
+            </button>
+        </div>
     </header>
     <main id="main-content">
         {% for category, message in get_flashed_messages(with_categories=true) %}
