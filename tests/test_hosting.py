@@ -32,6 +32,7 @@ class HostingTests(unittest.TestCase):
             "GROWTHLOG_TRUSTED_HOSTS": "growthlog.example",
             "GROWTHLOG_DATA_DIR": str(self.data_path),
             "GROWTHLOG_SECRET_KEY": "",
+            "GROWTHLOG_ALLOW_REGISTRATION": "1",
         })
         self.environment.start()
         self.addCleanup(self.environment.stop)
@@ -52,9 +53,9 @@ class HostingTests(unittest.TestCase):
     def get(self, path):
         return self.client.get(path, base_url="https://growthlog.example")
 
-    def token(self):
+    def token(self, path="/login"):
         return re.search(
-            r'name="csrf_token" value="([^"]+)"', self.get("/login").get_data(as_text=True)
+            r'name="csrf_token" value="([^"]+)"', self.get(path).get_data(as_text=True)
         ).group(1)
 
     def create_user(self, username="learner"):
@@ -90,14 +91,93 @@ class HostingTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('href="/register"', response.get_data(as_text=True))
         self.assertEqual(self.get("/setup").status_code, 403)
-        self.assertEqual(self.get("/register").status_code, 403)
+        self.assertEqual(self.get("/register").status_code, 503)
         response = self.client.post("/setup", base_url="https://growthlog.example", data={
             "csrf_token": self.token(), "username": "visitor",
             "password": "grow a little daily", "password_confirmation": "grow a little daily",
         })
         self.assertEqual(response.status_code, 403)
+        response = self.client.post("/register", base_url="https://growthlog.example", data={
+            "csrf_token": self.token(), "username": "visitor",
+            "password": "grow a little daily", "password_confirmation": "grow a little daily",
+        })
+        self.assertEqual(response.status_code, 503)
         with closing(connect_database(self.app.config["DATABASE"])) as connection:
             self.assertEqual(connection.execute("SELECT count(*) FROM users").fetchone()[0], 0)
+
+    def test_hosted_signup_creates_hashed_account_and_signs_in(self):
+        self.create_user()
+        self.assertIn('href="/register"', self.get("/login").get_data(as_text=True))
+        self.assertIn(b"Create your GrowthLog account", self.get("/register").data)
+        response = self.client.post("/register", base_url="https://growthlog.example", data={
+            "csrf_token": self.token("/register"), "username": "new_reader",
+            "password": "read a little daily", "password_confirmation": "read a little daily",
+        })
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(self.get("/").data, b"Private dashboard")
+        with closing(connect_database(self.app.config["DATABASE"])) as connection:
+            user = connection.execute("SELECT * FROM users WHERE username = 'new_reader'").fetchone()
+            self.assertTrue(check_password_hash(user["password_hash"], "read a little daily"))
+        with self.client.session_transaction(base_url="https://growthlog.example") as saved_session:
+            self.assertEqual(saved_session["user_id"], user["id"])
+        self.assertIn("Secure", response.headers["Set-Cookie"])
+
+    def test_hosted_signup_rejects_invalid_input_and_missing_csrf(self):
+        self.create_user()
+        data = {"username": "visitor", "password": "grow a little daily", "password_confirmation": "grow a little daily"}
+        self.assertEqual(self.client.post("/register", base_url="https://growthlog.example", data=data).status_code, 400)
+        data["csrf_token"] = self.token("/register")
+        invalid_forms = [
+            {"username": "invalid name"},
+            {"password": "short", "password_confirmation": "short"},
+            {"password_confirmation": "does not match"},
+            {"username": "LEARNER"},
+        ]
+        for invalid in invalid_forms:
+            response = self.client.post("/register", base_url="https://growthlog.example", data={**data, **invalid})
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn(b'value="grow a little daily"', response.data)
+        with closing(connect_database(self.app.config["DATABASE"])) as connection:
+            self.assertEqual(connection.execute("SELECT count(*) FROM users").fetchone()[0], 1)
+
+    def test_registration_can_be_closed_without_disabling_sign_in(self):
+        self.create_user()
+        with patch.dict(os.environ, {"GROWTHLOG_ALLOW_REGISTRATION": "0"}):
+            configure_hosting(self.app)
+        self.assertNotIn('href="/register"', self.get("/login").get_data(as_text=True))
+        self.assertEqual(self.get("/register").status_code, 403)
+        response = self.client.post("/register", base_url="https://growthlog.example", data={
+            "csrf_token": self.token(), "username": "visitor",
+            "password": "grow a little daily", "password_confirmation": "grow a little daily",
+        })
+        self.assertEqual(response.status_code, 403)
+        response = self.client.post("/login", base_url="https://growthlog.example", data={
+            "csrf_token": self.token(), "username": "learner", "password": "grow a little daily",
+        })
+        self.assertEqual(response.status_code, 303)
+
+    def test_signup_throttle_does_not_block_existing_user_login(self):
+        self.create_user()
+        data = {"csrf_token": self.token("/register"), "username": "visitor", "password": "short"}
+        for _ in range(3):
+            self.assertEqual(self.client.post("/register", base_url="https://growthlog.example", data=data).status_code, 400)
+        data.update(password="grow a little daily", password_confirmation="grow a little daily")
+        self.assertEqual(self.client.post("/register", base_url="https://growthlog.example", data=data).status_code, 429)
+        response = self.client.post("/login", base_url="https://growthlog.example", data={
+            "csrf_token": self.token(), "username": "learner", "password": "grow a little daily",
+        })
+        self.assertEqual(response.status_code, 303)
+        with closing(connect_database(self.app.config["DATABASE"])) as connection:
+            self.assertEqual(connection.execute("SELECT count(*) FROM users").fetchone()[0], 1)
+
+    def test_signup_throttle_limits_attempts_across_different_usernames(self):
+        self.create_user()
+        data = {"csrf_token": self.token("/register"), "password": "short"}
+        for number in range(10):
+            response = self.client.post("/register", base_url="https://growthlog.example", data={**data, "username": f"visitor{number}"})
+            self.assertEqual(response.status_code, 400)
+        response = self.client.post("/register", base_url="https://growthlog.example", data={**data, "username": "next"})
+        self.assertEqual(response.status_code, 429)
 
     def test_cli_account_is_hashed_and_can_sign_in_over_https(self):
         self.create_user()

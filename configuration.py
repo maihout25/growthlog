@@ -18,7 +18,8 @@ def configure_hosting(app):
     app.config.update(
         DATABASE=data_directory / "growthlog.sqlite3",
         PRODUCTION=production,
-        ALLOW_REGISTRATION=not production,
+        ALLOW_REGISTRATION=os.environ.get("GROWTHLOG_ALLOW_REGISTRATION", "1") == "1",
+        ALLOW_SETUP=not production,
         SESSION_COOKIE_SECURE=production,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",

@@ -1,4 +1,4 @@
-"""A small login throttle for PythonAnywhere's single free web worker."""
+"""Small account-request throttles for PythonAnywhere's single free web worker."""
 
 from collections import deque
 from threading import Lock
@@ -6,13 +6,15 @@ from time import monotonic
 
 
 class LoginThrottle:
-    def __init__(self):
+    def __init__(self, max_per_username=8, max_per_minute=30):
+        self.max_per_username = max_per_username
+        self.max_per_minute = max_per_minute
         self.by_username = {}
         self.recent = deque()
         self.lock = Lock()
 
     def allow(self, username):
-        """Allow eight attempts per username per 15 minutes, 30 total per minute."""
+        """Limit each username over 15 minutes and all usernames over one minute."""
         now = monotonic()
         # Usernames are case insensitive. Bound the key length for invalid input.
         key = username.strip().lower()[:40]
@@ -26,7 +28,7 @@ class LoginThrottle:
                 if not attempts:
                     del self.by_username[name]
             attempts = self.by_username.get(key, deque())
-            if len(self.recent) >= 30 or len(attempts) >= 8:
+            if len(self.recent) >= self.max_per_minute or len(attempts) >= self.max_per_username:
                 return False
             self.recent.append(now)
             attempts.append(now)

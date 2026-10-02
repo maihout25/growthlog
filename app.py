@@ -201,6 +201,7 @@ def confirm_delete_activity(activity_id):
 @app.errorhandler(404)
 @app.errorhandler(413)
 @app.errorhandler(429)
+@app.errorhandler(503)
 def request_error(error):
     if isinstance(error, SecurityError):
         # An untrusted hostname has no URL adapter for the page's navigation links.

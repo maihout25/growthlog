@@ -130,6 +130,20 @@ class AccountIntegrationTests(unittest.TestCase):
         self.assertIsNone(get_activity(self.database_path, activity_id, 1))
         self.assertIn(b"0 growth days this week", self.first.get("/").data)
 
+    def test_hosted_signup_starts_with_private_empty_journal(self):
+        activity_id = self.save_first_activity()
+        with patch.dict(app.config, PRODUCTION=True, ALLOW_SETUP=False):
+            visitor = app.test_client()
+            self.assertIn('href="/register"', self.get_form(visitor, "/login"))
+            self.assertIn("Sign up", self.get_form(visitor, "/register"))
+            self.register(visitor, "/register", "new_reader")
+            self.assertIn(b"0 growth days this week", visitor.get("/").data)
+            self.assertIn(b"No activities recorded yet", visitor.get("/journal").data)
+            self.assertNotIn(self.activity["reflection"].encode(), visitor.get("/journal").data)
+            self.assertEqual(visitor.get(f"/activities/{activity_id}/edit").status_code, 404)
+            self.assertEqual(visitor.get("/setup").status_code, 403)
+            self.assertIn(self.activity["reflection"].encode(), self.first.get("/journal").data)
+
     def test_logout_protects_pages_and_requires_fresh_login(self):
         activity_id = self.save_first_activity()
         response = self.first.post("/logout", data={"csrf_token": self.csrf(self.first, "/account")})

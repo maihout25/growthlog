@@ -1,10 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Welcome' if first_account else 'Create an account' }} | GrowthLog{% endblock %}
+{% block title %}{{ 'Welcome' if first_account else 'Sign up' }} | GrowthLog{% endblock %}
 {% block content %}
-<h1 class="page-heading">{{ 'Welcome to GrowthLog' if first_account else 'Create an account' }}</h1>
+<p class="eyebrow">Small steps, steady growth</p>
+<h1 class="page-heading">{{ 'Welcome to GrowthLog' if first_account else 'Create your GrowthLog account' }}</h1>
 {% if first_account %}
 <p>Create your account to continue. Any activities you saved before accounts were added will belong to this account.</p>
 {% else %}
+<p class="intro">Make time for what matters. Record activities, reflect, and build a consistent week.</p>
 <p>Your activities, plans, habits, and reflections will be separate from other accounts.</p>
 {% endif %}
 <p class="status">Choose a password you can remember; there is no email password reset.</p>

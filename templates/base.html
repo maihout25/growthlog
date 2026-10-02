@@ -37,6 +37,13 @@
                 <button class="text-button" type="submit">Log out</button>
             </form>
         </nav>
+        {% else %}
+        <nav aria-label="Account navigation">
+            <a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Sign in</a>
+            {% if registration_available %}
+            <a href="{{ url_for('auth.register') }}"{% if request.endpoint in ['auth.register', 'auth.setup'] %} aria-current="page"{% endif %}>Sign up</a>
+            {% endif %}
+        </nav>
         {% endif %}
     </header>
     <main id="main-content">

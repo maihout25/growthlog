@@ -53,8 +53,10 @@ def init_app(app):
     app.config.setdefault("CSRF_ENABLED", True)
     app.config.setdefault("LOGIN_DISABLED", False)
     app.config.setdefault("ALLOW_REGISTRATION", True)
+    app.config.setdefault("ALLOW_SETUP", not app.config.get("PRODUCTION", False))
     app.register_blueprint(auth)
     login_throttle = LoginThrottle()
+    registration_throttle = LoginThrottle(max_per_username=3, max_per_minute=10)
 
     @app.before_request
     def load_account_and_protect_forms():
@@ -75,7 +77,8 @@ def init_app(app):
                         session.clear()
 
             if request.endpoint not in PUBLIC_ENDPOINTS and g.user is None:
-                destination = "auth.setup" if not g.has_users and app.config["ALLOW_REGISTRATION"] else "auth.login"
+                offer_setup = not g.has_users and app.config["ALLOW_REGISTRATION"] and app.config["ALLOW_SETUP"]
+                destination = "auth.setup" if offer_setup else "auth.login"
                 return redirect(url_for(destination), code=303)
 
         if request.method not in {"GET", "HEAD", "OPTIONS"} and app.config["CSRF_ENABLED"]:
@@ -90,9 +93,19 @@ def init_app(app):
             if not login_throttle.allow(request.form.get("username", "")):
                 abort(429, description="Too many sign-in attempts. Please wait 15 minutes and try again.")
 
+        if (app.config.get("PRODUCTION") and request.endpoint == "auth.register"
+                and request.method == "POST" and app.config["ALLOW_REGISTRATION"]
+                and g.get("has_users") and g.user is None):
+            if not registration_throttle.allow(request.form.get("username", "")):
+                abort(429, description="Too many sign-up attempts. Please wait 15 minutes and try again.")
+
     @app.context_processor
     def account_template_values():
-        return {"current_user": g.get("user"), "csrf_token": csrf_token}
+        return {
+            "current_user": g.get("user"), "csrf_token": csrf_token,
+            "registration_available": app.config["ALLOW_REGISTRATION"]
+            and (g.get("has_users", False) or app.config["ALLOW_SETUP"]),
+        }
 
     @app.after_request
     def prevent_private_page_caching(response):
@@ -138,11 +151,15 @@ def start_session(user_id):
 def register_account(first_account):
     if not current_app.config["ALLOW_REGISTRATION"]:
         abort(403, description="Account registration is closed. Contact the owner for an account.")
+    if first_account and not current_app.config["ALLOW_SETUP"]:
+        abort(403, description="Initial account setup is managed by the site owner.")
     username = ""
     errors = []
     if first_account and g.has_users:
         return redirect(url_for("home" if g.user else "auth.login"), code=303)
     if not first_account and not g.has_users:
+        if not current_app.config["ALLOW_SETUP"]:
+            abort(503, description="Sign-up will be available once the site owner finishes setup.")
         return redirect(url_for("auth.setup"), code=303)
     if g.user is not None:
         return redirect(url_for("home"), code=303)
@@ -164,6 +181,8 @@ def register_account(first_account):
                         return redirect(url_for("auth.login"), code=303)
                     if not first_account and not has_users:
                         connection.rollback()
+                        if not current_app.config["ALLOW_SETUP"]:
+                            abort(503, description="Sign-up will be available once the site owner finishes setup.")
                         return redirect(url_for("auth.setup"), code=303)
                     cursor = connection.execute(
                         "INSERT INTO users (username, password_hash) VALUES (?, ?)",
@@ -199,7 +218,7 @@ def register():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
-    if not g.has_users and current_app.config["ALLOW_REGISTRATION"]:
+    if not g.has_users and current_app.config["ALLOW_REGISTRATION"] and current_app.config["ALLOW_SETUP"]:
         return redirect(url_for("auth.setup"), code=303)
     if g.user is not None:
         return redirect(url_for("home"), code=303)

@@ -113,9 +113,14 @@ created in step 3. Check these once after deployment:
 4. Open the address in a private browser window and check that it requires login.
 5. Check the layout on your phone and note the free website's expiry date.
 
-Public registration is closed in hosted mode. `/setup` and `/register` return a
-closed-registration message, including before the first account exists. To add
-someone you trust, use the private `create-user` console command again.
+After the owner creates the first account, visitors can choose **Sign up** on
+the login page or visit `/register`. Each account starts with its own empty
+journal. `/setup` remains closed in hosted mode, and public sign-up is unavailable
+until the owner creates that initial account through the private console.
+
+To close public sign-up later, add `os.environ["GROWTHLOG_ALLOW_REGISTRATION"] = "0"`
+to the Web-tab WSGI file before `from app import app as application`, then reload.
+Use `"1"` to reopen it. Existing accounts can still sign in when sign-up is closed.
 
 ## Update the website from GitHub
 
@@ -173,13 +178,17 @@ be your main journal, because the two databases do not synchronize.
 
 ## What the hosting settings do
 
-- `GROWTHLOG_ENV=production` closes browser registration, disables debugging,
+- `GROWTHLOG_ENV=production` closes initial browser setup, disables debugging,
   and enables HTTPS-only cookies. Normal local commands keep local defaults.
 - `GROWTHLOG_TRUSTED_HOSTS` allows only your configured website hostname.
 - `GROWTHLOG_DATA_DIR` chooses where the database and generated session key live.
   The PythonAnywhere template uses the persistent `growthlog/instance` folder.
+- `GROWTHLOG_ALLOW_REGISTRATION` defaults to `1` (open). Set it to `0` to close
+  public account registration without changing existing accounts.
 - The sign-in throttle allows eight attempts per username in 15 minutes and
-  30 attempts overall per minute. It is held in memory for the free plan's one
+  30 attempts overall per minute. A separate sign-up throttle allows three
+  attempts per username in 15 minutes and ten overall per minute. Both are held
+  in memory for the free plan's one
   web worker and resets on reload. Use a shared rate-limit store if you later
   move to multiple workers or a larger public service.
 - Reminders still require GrowthLog to be open in your browser. Hosting does
