@@ -7,6 +7,7 @@ per week, with room for rest.
 ## What is included
 
 - Weekly dashboard: distinct completed dates, Monday-Sunday, Africa/Dar_es_Salaam.
+- Weekly five-day streak with a current run and personal best from your journal history.
 - Completed activity journal with reflections, editing, and confirmed deletion.
 - Planned tasks and to-do list, with optional dates, times, and reminders.
 - Recurring habits on your chosen weekdays, with a weekly schedule and archive.
@@ -73,6 +74,13 @@ Adding plans or habits never increases the growth count. Only completed dates
 with a nonblank reflection qualify. Fitness counts. Completed future dates are
 rejected. Edits/deletions recalculate progress on your next page load.
 
+The weekly streak grows when consecutive weeks each reach five different growth
+days. Reaching the fifth day adds the week immediately; six or seven days still
+earn one week. An unfinished current week preserves a streak from last week.
+If that week ends below five days, the current streak resets on Monday while the
+personal best remains. Existing journal history counts, and edits or deletions
+recalculate both the current streak and personal best. No daily login is required.
+
 Deleting a completed activity returns its linked task to pending and removes
 its linked habit completion and optional fitness details. Deleting a plan keeps
 its completed journal entry. Archiving a habit stops uncompleted occurrences and
@@ -108,8 +116,8 @@ Codespaces, and stopped servers do not deliver reminders.
 
 In Codespaces use `.venv/bin/python -m unittest discover -s tests -v`.
 Checks use temporary databases, not your personal journal. They cover dates,
-progress, accounts, migrations, ownership, planning, recurrence, reminders,
-reflections, fitness, and deletion behavior.
+progress, weekly streaks, accounts, migrations, ownership, planning, recurrence,
+reminders, reflections, fitness, and deletion behavior.
 
 ## Learn the code
 

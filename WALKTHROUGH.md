@@ -6,17 +6,29 @@ time. You do not need to memorize every file.
 ## 1. Follow the original homepage
 
 Open `app.py` and find `home()`. The browser sends GET `/`. Flask finds Monday,
-reads qualifying dates from SQLite, counts the set with `len()`, and passes the
-result to `templates/index.html`.
+reads your qualifying dates from SQLite, and calculates your weekly streaks.
+It then selects this week's dates, counts the set with `len()`, and passes the
+progress and streaks to `templates/index.html`.
 
 Exercise: two activities on Tuesday and one on Thursday still mean two growth
 days. Find the line that ensures duplicate dates are counted once.
+
+In `progress.py`, `calculate_weekly_streaks()` groups dates by their week's
+Monday. A week with at least five distinct dates qualifies. Consecutive Mondays
+are seven days apart, so the function counts those runs to find your personal
+best. A run ending this week or last week is still current: this gives you the
+whole current week to reach the goal. Nothing stores a separate streak counter,
+so changing your journal also changes the streaks on the next dashboard visit.
+
+Exercise: last week you reached five days, and this Monday you have no entries.
+Should your one-week streak remain? Find the condition that handles this.
 
 ## 2. Understand the new files
 
 | File | Responsibility |
 | --- | --- |
 | `app.py` | Dashboard and completed activity routes |
+| `progress.py` | Current and best weekly streaks from qualifying growth dates |
 | `auth.py` | Accounts, sessions, password hashing, and form protection |
 | `planner.py` | Tasks, recurring habits, schedule, and reminder routes |
 | `insights.py` | Optional fitness details and weekly reflections |

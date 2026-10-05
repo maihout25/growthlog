@@ -13,6 +13,35 @@
     </div>
 </div>
 
+<section class="streak-panel" aria-labelledby="streak-heading">
+    <div class="streak-summary">
+        <span class="streak-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 3c1 5-4 6-4 10-2-1-3-3-3-3-2 3-2 5-2 6a8 8 0 0 0 16 0c0-5-4-8-7-13Z" />
+                <path d="M12 13c0 3-3 3-3 5a3 3 0 0 0 6 0c0-2-1-3-3-5Z" />
+            </svg>
+        </span>
+        <div>
+            <h2 id="streak-heading">Weekly consistency</h2>
+            <p class="streak-count" id="current-streak">{{ streak.current }}-week streak</p>
+        </div>
+    </div>
+    <p class="badge streak-best" id="best-streak">Personal best: {{ streak.best }} {{ 'week' if streak.best == 1 else 'weeks' }}</p>
+    <div class="streak-message">
+        {% if growth_days >= weekly_goal %}
+        <p>This week counts toward your streak. Enjoy some time to rest and recharge.</p>
+        {% elif streak.current > 0 %}
+        <p>Your streak is still going. Five growth days this week will extend it.</p>
+        {% elif streak.best > 0 %}
+        <p>Every new week is a fresh start. Your past growth still matters.</p>
+        {% else %}
+        <p>Build your first streak with five growth days in a week.</p>
+        {% endif %}
+        <p class="status">Each consecutive week with {{ weekly_goal }} growth days adds one to your streak,
+            with room for two rest days. You have until Sunday ends to extend an active streak.</p>
+    </div>
+</section>
+
 <section class="week-panel" aria-labelledby="week-heading">
     <div class="week-heading-row">
         <h2 id="week-heading">This week's growth</h2>

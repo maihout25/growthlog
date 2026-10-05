@@ -792,6 +792,71 @@ form > .actions, .page-header > .actions {
     background: var(--week-bg);
 }
 
+.streak-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px 24px;
+}
+
+.streak-summary {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.streak-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 54px;
+    height: 54px;
+    border: 1px solid var(--growth-border);
+    border-radius: 17px;
+    background: var(--tint);
+    color: var(--green);
+}
+
+.streak-icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.streak-summary h2 {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+
+.streak-count {
+    margin: 0;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+}
+
+.streak-best {
+    margin: 0;
+}
+
+.streak-message {
+    flex-basis: 100%;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+}
+
+.streak-message p {
+    margin: 0;
+}
+
+.streak-message .status {
+    margin-top: 8px;
+    font-size: 0.9rem;
+}
+
 .week-heading-row h2, .week-heading-row p {
     margin: 0;
 }

@@ -12,6 +12,7 @@ from database import (
     delete_activity, get_activity, get_growth_dates, list_activities,
     save_activity, update_activity,
 )
+from progress import calculate_weekly_streaks
 
 
 app = Flask(__name__)
@@ -72,8 +73,10 @@ def home():
     # weekday() is 0 on Monday and 6 on Sunday.
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
-    # Stop at today so a future date can never contribute to progress.
-    growth_dates = get_growth_dates(app.config["DATABASE"], week_start, today, get_user_id())
+    # Include history for streaks, but never allow future dates to count.
+    all_growth_dates = get_growth_dates(app.config["DATABASE"], date.min, today, get_user_id())
+    streak = calculate_weekly_streaks(all_growth_dates, today, WEEKLY_GOAL)
+    growth_dates = {day for day in all_growth_dates if day >= week_start.isoformat()}
     growth_days = len(growth_dates)
 
     days = []
@@ -90,6 +93,7 @@ def home():
         "index.html", week_start=week_start, week_end=week_end,
         days=days, growth_days=growth_days, weekly_goal=WEEKLY_GOAL,
         progress_value=min(growth_days, WEEKLY_GOAL),
+        streak=streak,
     )
 
 
